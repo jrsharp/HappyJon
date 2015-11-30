@@ -81,11 +81,16 @@ check_dec:
 
 	/* Set up an animation / prog indicator: */
 	addal	#56, %a0	/* Move to next line */
+	movel 	%a0, %a1
+	addal	#4, %a1
 	movel	#0xFF000000, %d0
+	movel	#0x000000FF, %d2
 
 end_loop:
 	movel	%d0, (%a0)
+	movel	%d2, (%a1)
 	rorl	#1, %d0
+	roll	#1, %d2
 	movel	#10000, %d1
 delay_loop:
 	nop
