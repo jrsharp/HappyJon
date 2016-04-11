@@ -1,6 +1,6 @@
 #!/bin/bash -xe
 
-m68k-elf-gcc -Os -o demo demo.s chars.c -nostdlib -mno-rtd
+m68k-elf-gcc -Os -o demo demo.s chars.c -nostdlib -mno-rtd -m68000
 #m68k-elf-gcc -Os -o chars chars.c -nostdlib -nodefaultlibs
 #m68k-elf-objcopy --add-section .chars=chars demo
 m68k-elf-objcopy -O binary demo floppy.img

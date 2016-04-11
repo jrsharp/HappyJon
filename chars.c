@@ -7,7 +7,10 @@ void doSomething() {
 	return;
 }
 
-int getChar(int charIndex) {
-	int foo[] = { 0, 0, 0 };
-	return 68;
+int getOffset(char charValue) {
+	return (charValue - 32) * (16 * 4);
+}
+
+int* getChar(char charValue) {
+	return &font_data[(charValue - 32) * 16];
 }

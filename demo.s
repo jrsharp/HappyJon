@@ -40,6 +40,7 @@ SysHeapSize: .long   0x00020000          /* system heap size on all machines */
 
 /* link to C lib */
 .extern	getChar
+.extern	getOffset
 .extern	doSomething
 .extern	font_data
 
@@ -99,70 +100,130 @@ clear_loop:
 	subi	#1, %d1
 	bne	clear_loop
 
-/*
+draw_string:
+
+	lea	message(%pc), %a3
+	movel	#24, %d1
+	movel	#12, %d2
+draw_str_loop:
+	movew	(%a3)+, %d0
+	movel	%d2, -(%sp)
+	movel	%d1, -(%sp)
 	movel	%d0, -(%sp)
+
+	jsr	draw_char
+	movel	(%sp)+, %d0
+	movel	(%sp)+, %d1
+	movel	(%sp)+, %d2
+	add.l	#1, %d1
+	cmp	#0, %d0
+	bne	draw_str_loop
+
+	movel	#'a', %d0
+	movel	#0, %d1
+	movel	#0, %d2
+	jsr	draw_char
+
+	movel	#'b', %d0
+	movel	#0, %d1
+	movel	#25, %d2
+	jsr	draw_char
+
+	movel	#'c', %d0
+	movel	#63, %d1
+	movel	#0, %d2
+	jsr	draw_char
+
+	movel	#'d', %d0
+	movel	#63, %d1
+	movel	#25, %d2
+	jsr	draw_char
+
+end_loop:
+	nop
+	jmp	end_loop
+
+/* draw_char: draws an ASCII char at x/y loc in framebuffer using 5x13 font:
+ *
+ *   params:
+ *   	d0 - char value
+ *	d1 - x value
+ *	d2 - y value
+ */
+
+draw_char:
+	movel	%d2, -(%sp)
+	movel	%d1, -(%sp)
+
+	movel	(ScrnBase), %a0
+	mulsw	#(13 * 64), %d2
+	addal	%d1, %a0
+	addal	%d2, %a0
+
+	sub	#32, %d0
+	mulsw	#64, %d0
+
+	/*
+	movel	%d2, -(%sp)
 	movel	%d1, -(%sp)
 	movel	%a0, -(%sp)
 	movel	%a1, -(%sp)
 	movel	%fp, -(%sp)
-	jsr	doSomething
+	movel	%d0, -(%sp)
+	jsr	getOffset(%pc)
 	movel	(%sp)+, %fp
 	movel	(%sp)+, %a1
 	movel	(%sp)+, %a0
 	movel	(%sp)+, %d1
-	movel	(%sp)+, %d0
+	movel	(%sp)+, %d2
 	*/
 
 	/* Reset vars for image drawing: */
-	lea	font_data, %a1 /* Image data */
-	/*addal	#13138, %a1*/ /* offset for font_data */
-	movel	(ScrnBase), %a0
-	/* Offset to place 64x64 image in center of display: */
-	/*
-	addal	#7388, %a0
-	*/
-	movew	#255, %d1
+	lea	font_data(%pc), %a1 /* Image data */
+	addal	%d0, %a1 /* offset for font_data */
+	/*addal	#(64 * 30), %a1 *//* offset for font_data */
+
+	movew	#13, %d1
 fill_loop:
 
 	movel	(%a1)+, %d0
-	movel	%d0, (%a0)+
+	moveb	%d0, (%a0)+
 
-	/* mod buffer count to find offset and shift memory */
-	/*
-	movel	%d1, %d3
-	divuw	#2, %d3
-	andil	#0xFFFF0000, %d3
-	bne	check_dec
-	*/
-
-	addal	#60, %a0	/* Move to next line */
+	addal	#63, %a0	/* Move to next line */
 
 check_dec:
 	subi	#1, %d1
 	bne	fill_loop
 
-	/* One more time! */
-	movel	(%a1)+, %d0
-	movel	%d0, (%a0)+
+	movel	(%sp)+, %d1
+	movel	(%sp)+, %d2
 
-	/* Set up an animation / prog indicator: */
-	addal	#56, %a0	/* Move to next line */
-	movel 	%a0, %a1
-	addal	#4, %a1
-	movel	#0xFF000000, %d0
-	movel	#0x000000FF, %d2
+	rts
 
-end_loop:
-	movel	%d0, (%a0)
-	movel	%d2, (%a1)
-	rorl	#1, %d0
-	roll	#1, %d2
-	movel	#10000, %d1
-delay_loop:
-	nop
-	subi	#1, %d1
-	bne	delay_loop
-	bra	end_loop
+message:
+	dc.w 0x48
+	dc.w 0x65
+	dc.w 0x6c
+	dc.w 0x6c
+	dc.w 0x6f
+	dc.w 0x20
+	dc.w 0x57
+	dc.w 0x6f
+	dc.w 0x72
+	dc.w 0x6c
+	dc.w 0x64
+	dc.w 0x2e
+	dc.w 0x00
+
+message2:
+	dc.w 48
+	dc.w 49
+	dc.w 50
+	dc.w 51
+	dc.w 52
+	dc.w 53
+	dc.w 54
+	dc.w 0
 
 buffer:
 	dc.l 0b00000000000000000000000000100001
