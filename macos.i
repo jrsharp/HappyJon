@@ -38,6 +38,14 @@
 	.short 0xA9C9
 .endm
 
+.macro GetKeys
+	.short 0xA976
+.endm
+
+.macro KeyLast
+	.short 0x0184
+.endm
+
 /* Pascal string : length, string */
 
 .macro pString string

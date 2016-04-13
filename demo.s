@@ -102,7 +102,7 @@ clear_loop:
 
 draw_string:
 
-	lea	message(%pc), %a3
+	lea	message2(%pc), %a3
 	movel	#24, %d1
 	movel	#12, %d2
 draw_str_loop:
@@ -130,18 +130,55 @@ draw_str_loop:
 	jsr	draw_char
 
 	movel	#'c', %d0
-	movel	#63, %d1
+	movel	#101, %d1
 	movel	#0, %d2
 	jsr	draw_char
 
 	movel	#'d', %d0
-	movel	#63, %d1
+	movel	#101, %d1
 	movel	#25, %d2
 	jsr	draw_char
 
 end_loop:
+	movel	(ScrnBase), %a2
+	addal	#30, %a2
+	/*
+	movel	keymap, -(%sp)
+	GetKeys
+	movel	(keymap), %d0
+	*/
+	movel	(0x0174), %d0
+	notl	%d0
+	movel	%d0, (%a2)
+	addal	#64, %a2
+	movel	(0x0175), %d0
+	notl	%d0
+	movel	%d0, (%a2)
+	addal	#64, %a2
+	movel	(0x0176), %d0
+	notl	%d0
+	movel	%d0, (%a2)
+	addal	#64, %a2
+	movel	(0x0184), %d0
+	notl	%d0
+	movel	%d0, (%a2)
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
 	nop
 	jmp	end_loop
+
+keymap:
+	dc.l 0x00000000
+	dc.l 0x00000000
+	dc.l 0x00000000
+	dc.l 0x00000000
 
 /* draw_char: draws an ASCII char at x/y loc in framebuffer using 5x13 font:
  *
@@ -157,7 +194,21 @@ draw_char:
 
 	movel	(ScrnBase), %a0
 	mulsw	#(13 * 64), %d2
-	addal	%d1, %a0
+
+	movel	%d1, %d5
+	mulsw	#5, %d5
+	divuw	#8, %d5
+	movew	%d5, %d6
+	addal	%d6, %a0
+
+	lsrl	#8, %d5
+	lsrl	#8, %d5
+
+	cmp	#0, %d5
+	beq	even_stevens
+	/*addal	#1, %a0*/
+
+even_stevens:
 	addal	%d2, %a0
 
 	sub	#32, %d0
@@ -179,21 +230,53 @@ draw_char:
 	*/
 
 	/* Reset vars for image drawing: */
-	lea	font_data(%pc), %a1 /* Image data */
+	lea	font_data(%pc), %a1 /* font data */
 	addal	%d0, %a1 /* offset for font_data */
-	/*addal	#(64 * 30), %a1 *//* offset for font_data */
+
+	movel	%d0, %d3
 
 	movew	#13, %d1
 fill_loop:
 
 	movel	(%a1)+, %d0
-	moveb	%d0, (%a0)+
+	lsrb	%d5, %d0
+	/*not	%d0*/
+	orb	%d0, (%a0)+
+	/*moveb	%d0, (%a0)+*/
 
 	addal	#63, %a0	/* Move to next line */
 
 check_dec:
 	subi	#1, %d1
 	bne	fill_loop
+
+check_overflow:
+	cmp	#3, %d5
+	blt	draw_done
+	movew	#8, %d4
+	sub	%d5, %d4
+	
+	sub	#((13 * 64) - 1), %a0
+
+	lea	font_data(%pc), %a1 /* font data */
+	addal	%d3, %a1 /* offset for font_data */
+
+	movew	#13, %d1
+fill_loop2:
+
+	movel	(%a1)+, %d0
+	lslb	%d4, %d0
+	/*not	%d0*/
+	orb	%d0, (%a0)+
+	/*moveb	%d0, (%a0)+*/
+
+	addal	#63, %a0	/* Move to next line */
+
+check_dec2:
+	subi	#1, %d1
+	bne	fill_loop2
+
+draw_done:
 
 	movel	(%sp)+, %d1
 	movel	(%sp)+, %d2
@@ -216,13 +299,49 @@ message:
 	dc.w 0x00
 
 message2:
-	dc.w 48
-	dc.w 49
-	dc.w 50
-	dc.w 51
-	dc.w 52
-	dc.w 53
-	dc.w 54
+	dc.w 0x57
+	dc.w 0x65
+	dc.w 0x6c
+	dc.w 0x63
+	dc.w 0x6f
+	dc.w 0x6d
+	dc.w 0x65
+	dc.w 0x2e
+	dc.w 0x20
+	dc.w 0x54
+	dc.w 0x6f
+	dc.w 0x20
+	dc.w 0x74
+	dc.w 0x68
+	dc.w 0x69
+	dc.w 0x73
+	dc.w 0x20
+	dc.w 0x62
+	dc.w 0x61
+	dc.w 0x72
+	dc.w 0x65
+	dc.w 0x2d
+	dc.w 0x6d
+	dc.w 0x65
+	dc.w 0x74
+	dc.w 0x61
+	dc.w 0x6c
+	dc.w 0x20
+	dc.w 0x4d
+	dc.w 0x61
+	dc.w 0x63
+	dc.w 0x69
+	dc.w 0x6e
+	dc.w 0x74
+	dc.w 0x6f
+	dc.w 0x73
+	dc.w 0x68
+	dc.w 0x20
+	dc.w 0x64
+	dc.w 0x65
+	dc.w 0x6d
+	dc.w 0x6f
+	dc.w 0x2e
 	dc.w 0
 
 buffer:
