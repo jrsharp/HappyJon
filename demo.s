@@ -100,24 +100,55 @@ clear_loop:
 	subi	#1, %d1
 	bne	clear_loop
 
-draw_string:
-
 	lea	message2(%pc), %a3
 	movel	#24, %d1
 	movel	#12, %d2
-draw_str_loop:
-	movew	(%a3)+, %d0
-	movel	%d2, -(%sp)
-	movel	%d1, -(%sp)
-	movel	%d0, -(%sp)
+	jsr	draw_string
 
-	jsr	draw_char
-	movel	(%sp)+, %d0
-	movel	(%sp)+, %d1
-	movel	(%sp)+, %d2
-	add.l	#1, %d1
-	cmp	#0, %d0
-	bne	draw_str_loop
+	lea	message3(%pc), %a3
+	movel	#1, %d1
+	movel	#2, %d2
+	jsr	draw_string
+
+	lea	message3(%pc), %a3
+	movel	#0, %d1
+	movel	#18, %d2
+	jsr	draw_string
+
+	lea	message3(%pc), %a3
+	movel	#40, %d1
+	movel	#19, %d2
+	jsr	draw_string
+
+	lea	message3(%pc), %a3
+	movel	#10, %d1
+	movel	#3, %d2
+	jsr	draw_string
+
+	lea	message3(%pc), %a3
+	movel	#30, %d1
+	movel	#5, %d2
+	jsr	draw_string
+
+	lea	message3(%pc), %a3
+	movel	#40, %d1
+	movel	#6, %d2
+	jsr	draw_string
+
+	lea	message3(%pc), %a3
+	movel	#32, %d1
+	movel	#7, %d2
+	jsr	draw_string
+
+	lea	message3(%pc), %a3
+	movel	#20, %d1
+	movel	#4, %d2
+	jsr	draw_string
+
+	lea	message3(%pc), %a3
+	movel	#25, %d1
+	movel	#8, %d2
+	jsr	draw_string
 
 	movel	#'a', %d0
 	movel	#0, %d1
@@ -159,14 +190,20 @@ end_loop:
 	notl	%d0
 	movel	%d0, (%a2)
 	addal	#64, %a2
-	movel	(0x0184), %d0
+	movel	(0x0177), %d0
 	notl	%d0
 	movel	%d0, (%a2)
+
 	nop
 	nop
 	nop
 	nop
-	nop
+
+	jsr	get_key
+	movel	#101, %d1
+	movel	#25, %d2
+	jsr	draw_char
+
 	nop
 	nop
 	nop
@@ -283,6 +320,192 @@ draw_done:
 
 	rts
 
+/* draw_string: draws an ASCII char at x/y loc in framebuffer using 5x13 font:
+ *
+ *   params:
+ *   	a3 - pointer to string
+ *	d1 - x value
+ *	d2 - y value
+ */
+
+draw_string:
+
+draw_str_loop:
+	movew	(%a3)+, %d0
+	movel	%d2, -(%sp)
+	movel	%d1, -(%sp)
+	movel	%d0, -(%sp)
+
+	jsr	draw_char
+	movel	(%sp)+, %d0
+	movel	(%sp)+, %d1
+	movel	(%sp)+, %d2
+	add.l	#1, %d1
+	cmp	#0, %d0
+	bne	draw_str_loop
+
+	rts
+
+/* check_bit: check the bit value of the KeyMap regs
+ *
+ * params:
+ *
+ *
+ * returns:
+ *	
+ *	d0 - contains key (char) value matched. (0x00 for no match)
+ */
+
+get_key:
+	movel	%d3, -(%sp)
+	movel	%d2, -(%sp)
+	movel	%d1, -(%sp)
+	movel	%a0, -(%sp)
+
+	movel	#0, %d0
+	movel	0x0174, %a0	/* KeyMap base addr */
+get_key_loop:
+	movew	%d0, %d1
+	divu	#8, %d1
+	movel	(%a0), %d2
+	lsrl	#8, %d2
+	lsrl	#8, %d2
+	lsrl	#8, %d2
+	andb	%d0, %d2
+	cmp	#0, %d2
+	bgt	found_key
+
+	addil	#1, %d0
+	cmp	#8, %d0
+	blt	get_key_loop
+
+	movew	#0x1, %d0
+
+found_key:
+	lea	scancodes(%pc), %a0
+	addal	%d0, %a0
+	movew	(%a0), %d0
+	
+didnt_find_key:
+
+	movel	(%sp)+, %a0
+	movel	(%sp)+, %d1
+	movel	(%sp)+, %d2
+	movel	(%sp)+, %d3
+
+	movew	#0x41, %d0
+
+	rts
+
+scancodes:
+	dc.l 'a'
+	dc.l 's'
+	dc.l 'd'
+	dc.l 'f'
+	dc.l 'h'
+	dc.l 'g'
+	dc.l 'z'
+	dc.l 'x'
+	dc.w 'c'
+	dc.w 'v'
+	dc.w 'b'
+	dc.w 'q'
+	dc.w 'w'
+	dc.w 'e'
+	dc.w 'r'
+	dc.w 'y'
+	dc.w 't'
+	dc.w '1'
+	dc.w '2'
+	dc.w '3'
+	dc.w '4'
+	dc.w '6'
+	dc.w '5'
+	dc.w '='
+	dc.w '9'
+	dc.w '7'
+	dc.w '-'
+	dc.w '8'
+	dc.w '0'
+	dc.w '}'
+	dc.w 'o'
+	dc.w 'u'
+	dc.w '{'
+	dc.w 'i'
+	dc.w 'p'
+	dc.w '\r'
+	dc.w 'l'
+	dc.w 'j'
+	dc.w '"'
+	dc.w 'k'
+	dc.w ':'
+	dc.w '\\'
+	dc.w ','
+	dc.w '/'
+	dc.w 'n'
+	dc.w 'm'
+	dc.w '\s'
+	dc.w '\t'
+	dc.w ' '
+	dc.w '~'
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+	dc.w ' '
+
 message:
 	dc.w 0x48
 	dc.w 0x65
@@ -343,6 +566,71 @@ message2:
 	dc.w 0x6f
 	dc.w 0x2e
 	dc.w 0
+
+/* Zelda might fix the job growth plans very quickly on Monday. */
+
+message3:
+	dc.w 0x5a
+	dc.w 0x65
+	dc.w 0x6c
+	dc.w 0x64
+	dc.w 0x61
+	dc.w 0x20
+	dc.w 0x6d
+	dc.w 0x69
+	dc.w 0x67
+	dc.w 0x68
+	dc.w 0x74
+	dc.w 0x20
+	dc.w 0x66
+	dc.w 0x69
+	dc.w 0x78
+	dc.w 0x20
+	dc.w 0x74
+	dc.w 0x68
+	dc.w 0x65
+	dc.w 0x20
+	dc.w 0x6a
+	dc.w 0x6f
+	dc.w 0x62
+	dc.w 0x20
+	dc.w 0x67
+	dc.w 0x72
+	dc.w 0x6f
+	dc.w 0x77
+	dc.w 0x74
+	dc.w 0x68
+	dc.w 0x20
+	dc.w 0x70
+	dc.w 0x6c
+	dc.w 0x61
+	dc.w 0x6e
+	dc.w 0x73
+	dc.w 0x20
+	dc.w 0x76
+	dc.w 0x65
+	dc.w 0x72
+	dc.w 0x79
+	dc.w 0x20
+	dc.w 0x71
+	dc.w 0x75
+	dc.w 0x69
+	dc.w 0x63
+	dc.w 0x6b
+	dc.w 0x6c
+	dc.w 0x79
+	dc.w 0x20
+	dc.w 0x6f
+	dc.w 0x6e
+	dc.w 0x20
+	dc.w 0x4d
+	dc.w 0x6f
+	dc.w 0x6e
+	dc.w 0x64
+	dc.w 0x61
+	dc.w 0x79
+	dc.w 0x2e
+	dc.w 0x0a
 
 buffer:
 	dc.l 0b00000000000000000000000000100001
