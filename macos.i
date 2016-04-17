@@ -13,6 +13,7 @@
 .endm
 
 .equ	CPUFlag,	0x012F
+.equ	KeyMap,	        0x0174
 
 .macro StripAddress
 	.short 0xA055

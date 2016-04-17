@@ -165,11 +165,14 @@ clear_loop:
 	movel	#0, %d2
 	jsr	draw_char
 
+/*
 	movel	#'d', %d0
 	movel	#101, %d1
 	movel	#25, %d2
 	jsr	draw_char
+*/
 
+	movel	#3, %d7
 end_loop:
 	movel	(ScrnBase), %a2
 	addal	#30, %a2
@@ -200,9 +203,14 @@ end_loop:
 	nop
 
 	jsr	get_key
-	movel	#101, %d1
+	tst	%d0
+
+	beq	no_key
+
+	movel	%d7, %d1
 	movel	#25, %d2
 	jsr	draw_char
+no_key:
 
 	nop
 	nop
@@ -226,6 +234,7 @@ keymap:
  */
 
 draw_char:
+	movel	%d7, -(%sp)
 	movel	%d2, -(%sp)
 	movel	%d1, -(%sp)
 
@@ -251,21 +260,6 @@ even_stevens:
 	sub	#32, %d0
 	mulsw	#64, %d0
 
-	/*
-	movel	%d2, -(%sp)
-	movel	%d1, -(%sp)
-	movel	%a0, -(%sp)
-	movel	%a1, -(%sp)
-	movel	%fp, -(%sp)
-	movel	%d0, -(%sp)
-	jsr	getOffset(%pc)
-	movel	(%sp)+, %fp
-	movel	(%sp)+, %a1
-	movel	(%sp)+, %a0
-	movel	(%sp)+, %d1
-	movel	(%sp)+, %d2
-	*/
-
 	/* Reset vars for image drawing: */
 	lea	font_data(%pc), %a1 /* font data */
 	addal	%d0, %a1 /* offset for font_data */
@@ -276,9 +270,16 @@ even_stevens:
 fill_loop:
 
 	movel	(%a1)+, %d0
+	moveb	(%a0), %d7
+	moveb	#0x80, %d2
 	lsrb	%d5, %d0
+	subb	#1, %d5
+	asrb	%d5, %d2
+	add	#1, %d5
+	andb	%d2, %d7
+	orb	%d7, %d0
 	/*not	%d0*/
-	orb	%d0, (%a0)+
+	moveb	%d0, (%a0)+
 	/*moveb	%d0, (%a0)+*/
 
 	addal	#63, %a0	/* Move to next line */
@@ -302,9 +303,14 @@ check_overflow:
 fill_loop2:
 
 	movel	(%a1)+, %d0
+	moveb	(%a0), %d7
+	moveb	#1, %d2
+	aslb	%d4, %d2
 	lslb	%d4, %d0
+	andb	%d2, %d7
+	orb	%d7, %d0
 	/*not	%d0*/
-	orb	%d0, (%a0)+
+	moveb	%d0, (%a0)+
 	/*moveb	%d0, (%a0)+*/
 
 	addal	#63, %a0	/* Move to next line */
@@ -317,6 +323,7 @@ draw_done:
 
 	movel	(%sp)+, %d1
 	movel	(%sp)+, %d2
+	movel	(%sp)+, %d7
 
 	rts
 
@@ -357,32 +364,56 @@ draw_str_loop:
  */
 
 get_key:
+	movel	%d4, -(%sp)
 	movel	%d3, -(%sp)
 	movel	%d2, -(%sp)
 	movel	%d1, -(%sp)
 	movel	%a0, -(%sp)
 
-	movel	#0, %d0
-	movel	0x0174, %a0	/* KeyMap base addr */
+	movel	#128, %d0
 get_key_loop:
-	movew	%d0, %d1
-	divu	#8, %d1
-	movel	(%a0), %d2
-	lsrl	#8, %d2
-	lsrl	#8, %d2
-	lsrl	#8, %d2
+	movel	%d0, %d1
+	divu	#32, %d1
+	movel	%d1, %d3
+	andl	#0x0000FFFF, %d3	/* d3 holds quotient */
+	lsrl	#8, %d1
+	lsrl	#8, %d1			/* d1 holds remainder */
+
+r4:
+	movel	(KeyMap+6), %d2
+	cmp	#3, %d3
+	beq	token1
+r3:
+	movel	(KeyMap+4), %d2
+	cmp	#2, %d3
+	beq	token1
+r2:
+	movel	(KeyMap+2), %d2
+	cmp	#1, %d3
+	beq	token1
+r1:
+	movel	(KeyMap), %d2
+
+token1:
+	movel	(ScrnBase), %a1
+	movel	%d3, (%a1)
+
+/*
 	andb	%d0, %d2
 	cmp	#0, %d2
-	bgt	found_key
+	*/
+	btst	%d1, %d2
+	bne	found_key
 
-	addil	#1, %d0
-	cmp	#8, %d0
-	blt	get_key_loop
+	subi	#1, %d0
+	bne	get_key_loop
 
-	movew	#0x1, %d0
+	movew	#0x0, %d0
+	jmp	didnt_find_key
 
 found_key:
-	lea	scancodes(%pc), %a0
+	lea	scancodes, %a0
+	mulsw	#2, %d0
 	addal	%d0, %a0
 	movew	(%a0), %d0
 	
@@ -392,20 +423,19 @@ didnt_find_key:
 	movel	(%sp)+, %d1
 	movel	(%sp)+, %d2
 	movel	(%sp)+, %d3
-
-	movew	#0x41, %d0
+	movel	(%sp)+, %d4
 
 	rts
 
 scancodes:
-	dc.l 'a'
-	dc.l 's'
-	dc.l 'd'
-	dc.l 'f'
-	dc.l 'h'
-	dc.l 'g'
-	dc.l 'z'
-	dc.l 'x'
+	dc.w 'a'
+	dc.w 's'
+	dc.w 'd'
+	dc.w 'f'
+	dc.w 'h'
+	dc.w 'g'
+	dc.w 'z'
+	dc.w 'x'
 	dc.w 'c'
 	dc.w 'v'
 	dc.w 'b'
@@ -448,6 +478,7 @@ scancodes:
 	dc.w '\t'
 	dc.w ' '
 	dc.w '~'
+	dc.w ' '
 	dc.w ' '
 	dc.w ' '
 	dc.w ' '
