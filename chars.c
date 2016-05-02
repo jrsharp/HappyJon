@@ -1,5 +1,5 @@
 #include "chars.h"
-//#include <stdio.h>
+#include <stdio.h>
 
 void doSomething() {
 	int x = 2;
@@ -13,6 +13,6 @@ int getOffset(char charValue) {
 }
 
 int* getChar(char charValue) {
-//	puts("Hello.");
+	puts("Hello.");
 	return &font_data[(charValue - 32) * 16];
 }

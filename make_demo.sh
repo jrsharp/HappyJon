@@ -1,7 +1,6 @@
 #!/bin/bash -xe
 
-#m68k-unknown-elf-gcc -Os -o demo demo.s chars.c syscalls.c -nostdlib -lc -lm -mno-rtd -m68000
-m68k-unknown-elf-gcc -Os -o demo demo.s chars.c -nostdlib -lc -lm -mno-rtd -m68000
+m68k-unknown-elf-gcc -Os -o demo demo.s chars.c syscalls.c -nostdlib -lc -lm -mno-rtd -m68000
 #m68k-unknown-elf-gcc -Os -o chars chars.c -nostdlib -nodefaultlibs
 #m68k-unknown-elf-objcopy --add-section .chars=chars demo
 m68k-unknown-elf-objcopy -O binary demo floppy.img
