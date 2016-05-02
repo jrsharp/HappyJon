@@ -228,7 +228,7 @@ keymap:
 /* draw_char: draws an ASCII char at x/y loc in framebuffer using 5x13 font:
  *
  *   params:
- *   	d0 - char value
+ * 	d0 - char value
  *	d1 - x value
  *	d2 - y value
  */
@@ -370,33 +370,83 @@ get_key:
 	movel	%d1, -(%sp)
 	movel	%a0, -(%sp)
 
-	movel	#128, %d0
+	movel	#127, %d0
 get_key_loop:
 	movel	%d0, %d1
-	divu	#32, %d1
+	divu	#8, %d1
 	movel	%d1, %d3
 	andl	#0x0000FFFF, %d3	/* d3 holds quotient */
 	lsrl	#8, %d1
 	lsrl	#8, %d1			/* d1 holds remainder */
 
+r15:
+	moveb	(KeyMap+15), %d2
+	cmp	#15, %d3
+	beq	token1
+r14:
+	moveb	(KeyMap+14), %d2
+	cmp	#14, %d3
+	beq	token1
+r13:
+	moveb	(KeyMap+13), %d2
+	cmp	#13, %d3
+	beq	token1
+r12:
+	moveb	(KeyMap+12), %d2
+	cmp	#12, %d3
+	beq	token1
+r11:
+	moveb	(KeyMap+11), %d2
+	cmp	#11, %d3
+	beq	token1
+r10:
+	moveb	(KeyMap+10), %d2
+	cmp	#10, %d3
+	beq	token1
+r9:
+	moveb	(KeyMap+9), %d2
+	cmp	#9, %d3
+	beq	token1
+r8:
+	moveb	(KeyMap+8), %d2
+	cmp	#8, %d3
+	beq	token1
+r7:
+	moveb	(KeyMap+7), %d2
+	cmp	#7, %d3
+	beq	token1
+r6:
+	moveb	(KeyMap+6), %d2
+	cmp	#6, %d3
+	beq	token1
+r5:
+	moveb	(KeyMap+5), %d2
+	cmp	#5, %d3
+	beq	token1
 r4:
-	movel	(KeyMap+6), %d2
-	cmp	#3, %d3
+	moveb	(KeyMap+4), %d2
+	cmp	#4, %d3
 	beq	token1
 r3:
-	movel	(KeyMap+4), %d2
-	cmp	#2, %d3
+	moveb	(KeyMap+3), %d2
+	cmp	#3, %d3
 	beq	token1
 r2:
-	movel	(KeyMap+2), %d2
-	cmp	#1, %d3
+	moveb	(KeyMap+2), %d2
+	cmp	#2, %d3
 	beq	token1
 r1:
-	movel	(KeyMap), %d2
+	moveb	(KeyMap+1), %d2
+	cmp	#1, %d3
+	beq	token1
+r0:
+	moveb	(KeyMap), %d2
 
 token1:
 	movel	(ScrnBase), %a1
-	movel	%d3, (%a1)
+	movel	%d2, (%a1)
+	addal	#64, %a1
+	movel	%d1, (%a1)
 
 /*
 	andb	%d0, %d2
@@ -413,7 +463,9 @@ token1:
 
 found_key:
 	lea	scancodes, %a0
+	mulsw	#2, %d1
 	mulsw	#2, %d0
+	add	%d1, %d0
 	addal	%d0, %a0
 	movew	(%a0), %d0
 	
