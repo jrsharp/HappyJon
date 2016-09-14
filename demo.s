@@ -43,9 +43,15 @@ SysHeapSize: .long   0x00020000          /* system heap size on all machines */
 .extern	getOffset
 .extern	doSomething
 .extern	font_data
+.extern	rand
+.extern	abs
+.extern	getNumber
+.global draw_char
+.global drawstr
 
-	.align	4
+.align	4
 start:
+
 	moveal SysZone,%a0
 	addal %pc@(SysHeapSize),%a0
 	SetApplBase
@@ -57,6 +63,7 @@ start:
 
 	/* Allocate Memory for second stage loader */
 
+/*
 	add.l	#4, %d0
 	NewPtr
 	move.l	%a0, %d0
@@ -64,20 +71,21 @@ start:
 	move.l	#1, %d0
 	SysError
 malloc_ok:
+*/
+	move.l	0x300000, %a0
 	add.l	#3, %d0
 	and.l	#0xFFFFFFFC.l, %d0
 
 	/* load second stage */
-
 	load_second
 
 	/* call second stage bootloader */
-
-/*
-	move.l	#3, %d0
+	/*move.l	0x300400, %a0*/
+	move.l	%a0, %d0
+	swap	%d0
+	/*
 	SysError
 	*/
-
 	jmp	(%a0)
 
 PRAM_buffer:
@@ -89,8 +97,21 @@ end:
 
 /* Start the framebuffer stuff: */
 start_fb:
+
+/*
+	move.l	#0xFF, %d0
+	SysError
+	*/
+
 	/* movel	#0x3FA700, %a0 */ /* Start of framebuffer on 4MB Plus */
 	movel	(ScrnBase), %a0
+
+	/*
+	movel	(ApplZone), %a0
+	movel	%a0, %d0
+	swap %d0
+	SysError
+	*/
 
 	/* clear screen */
 	movel	#0x00000000, %d0
@@ -166,11 +187,19 @@ clear_loop:
 	jsr	draw_char
 
 /*
+	move.l	#0x00002468, %d0
+	SysError
+
+*/
+/*
+	jsr getNumber(%pc)
 	movel	#'d', %d0
+*/
 	movel	#101, %d1
 	movel	#25, %d2
 	jsr	draw_char
-*/
+
+	jsr doSomething(%pc)
 
 	movel	#3, %d7
 end_loop:
@@ -325,6 +354,39 @@ draw_done:
 	movel	(%sp)+, %d2
 	movel	(%sp)+, %d7
 
+	rts
+
+/*
+ * drawstr
+ *
+ * params:
+ *	a0 - pointer to string
+ *	d0 - x value
+ *	d1 - y value
+ */
+drawstr:
+
+	movel	(%sp)+, %a4
+	movel	(%sp)+, %a3
+	movel	(%sp)+, %d1
+	movel	(%sp)+, %d2
+
+drawstr_loop:
+	moveb	(%a3)+, %d0
+	andi	#0x000000FF, %d0
+	movel	%d2, -(%sp)
+	movel	%d1, -(%sp)
+	movel	%d0, -(%sp)
+
+	jsr	draw_char
+	movel	(%sp)+, %d0
+	movel	(%sp)+, %d1
+	movel	(%sp)+, %d2
+	add.l	#1, %d1
+	cmp	#0, %d0
+	bne	drawstr_loop
+	
+	movel	%a4, -(%sp)
 	rts
 
 /* draw_string: draws an ASCII char at x/y loc in framebuffer using 5x13 font:

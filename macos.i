@@ -7,6 +7,8 @@
 .equ	ROMBase, 0x2ae
 .equ	SysZone, 0x2a6
 .equ	TheZone, 0x2a6
+.equ	ApplZone, 0x2aa
+.equ	ApplLimit, 0x130
 
 .macro	SetApplBase
 	.short 0xa057

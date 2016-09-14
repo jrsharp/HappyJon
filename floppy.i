@@ -64,7 +64,8 @@ ioPosOffset: /* ioPosOffset : positionning offset */
     /* save result in the ParamBlockRec.ioBuffer */
 
     lea    ioBuffer(%pc),%a0
-    move.l    %d0,(%a0)
+    /*move.l    %d0,(%a0)*/
+    move.l    #0x300400,(%a0)
 
     /* Now, we load the second stage loader */
 
