@@ -366,7 +366,10 @@ draw_done:
  */
 drawstr:
 
+	link	%fp, #32
+	/*
 	movel	(%sp)+, %a4
+	*/
 	movel	(%sp)+, %a3
 	movel	(%sp)+, %d1
 	movel	(%sp)+, %d2
@@ -386,7 +389,7 @@ drawstr_loop:
 	cmp	#0, %d0
 	bne	drawstr_loop
 	
-	movel	%a4, -(%sp)
+	unlk	%fp
 	rts
 
 /* draw_string: draws an ASCII char at x/y loc in framebuffer using 5x13 font:

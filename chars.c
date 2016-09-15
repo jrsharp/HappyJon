@@ -19,8 +19,9 @@ void doSomething() {
         //while (1==1) {};
         //putchar(p[0]);
         //draw_char(0x55, 0, 0);
-        //drawstr(foo, 0, 0);
-	puts("foo");
+        drawstr(foo, 0, 1);
+        drawstr(foo, 0, 2);
+	//puts("foo");
 	int x = 2;
 	int y = 8;
 	int z = x + y;
