@@ -3,12 +3,12 @@
 #m68k-unknown-elf-gcc -Os -o libchars.a chars.c syscalls.c -nostdlib -lc -lm -mno-rtd -m68000 -mpcrel -pie
 #m68k-unknown-elf-gcc -Os -o demo demo.s -L./ -nostdlib -mno-rtd -m68000 -mpcrel -pie -lchars -static
 
-m68k-unknown-elf-gcc -O3 -g -o demo demo.s chars.c syscalls.c -nostdlib -fomit-frame-pointer -lc -lm -mno-rtd -m68000 -msoft-float -mpcrel -T macplus.lds
+m68k-elf-gcc -O3 -g -o demo demo.s chars.c syscalls.c -nostdlib -fomit-frame-pointer -lc -lm -mno-rtd -m68000 -msoft-float -mpcrel -T macplus.lds
 
 #m68k-unknown-elf-gcc -Os -o chars chars.c -nostdlib -nodefaultlibs
 #m68k-unknown-elf-objcopy --add-section .chars=chars demo
 
-m68k-unknown-elf-objcopy -O binary demo floppy.img
+m68k-elf-objcopy -O binary demo floppy.img
 
 #m68k-unknown-elf-objcopy -O binary chars chars.bin
 

@@ -19,9 +19,9 @@ void doSomething() {
         //while (1==1) {};
         //putchar(0x66);
         //draw_char(0x55, 0, 0);
-		puts("foo");
         drawstr(foo, 5, 7);
         drawstr(foo, 6, 8);
+	puts("foobar");
 		return;
 }
 

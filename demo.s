@@ -46,7 +46,7 @@ SysHeapSize: .long   0x00020000          /* system heap size on all machines */
 .extern	rand
 .extern	abs
 .extern	getNumber
-.global draw_char
+.global drawchar
 .global drawstr
 
 .align	4
@@ -266,6 +266,12 @@ draw_char:
 	movel	%d7, -(%sp)
 	movel	%d2, -(%sp)
 	movel	%d1, -(%sp)
+	movel	%a0, -(%sp)
+	movel	%a1, -(%sp)
+	movel	%d3, -(%sp)
+	movel	%d4, -(%sp)
+	movel	%d5, -(%sp)
+	movel	%d6, -(%sp)
 
 	movel	(ScrnBase), %a0
 	mulsw	#(13 * 64), %d2
@@ -350,12 +356,38 @@ check_dec2:
 
 draw_done:
 
+	movel	(%sp)+, %d6
+	movel	(%sp)+, %d5
+	movel	(%sp)+, %d4
+	movel	(%sp)+, %d3
+	movel	(%sp)+, %a1
+	movel	(%sp)+, %a0
 	movel	(%sp)+, %d1
 	movel	(%sp)+, %d2
 	movel	(%sp)+, %d7
 
 	rts
 
+/*
+ * drawchar
+ */
+
+drawchar:
+	movel	(%sp)+, %a0
+
+	movel	(%sp)+, %d0
+	movel	(%sp)+, %d1
+	movel	(%sp)+, %d2
+
+	jsr	draw_char
+	
+	pea	0
+	pea	0
+	pea	0
+
+	movel	%a0, -(%sp)
+
+	rts
 /*
  * drawstr
  *
