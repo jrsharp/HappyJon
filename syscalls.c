@@ -41,9 +41,7 @@ int read(int file, char *ptr, int len) {
 
 int write(int file, char *ptr, int len) {
 	int i;
-	for (i = 0; i < len; i++) {
-		drawstr(ptr, 0, 1);
-	}
+	drawstr(ptr, 2, 1);
 	return len;
 	//return -1;
 }

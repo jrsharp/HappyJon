@@ -17,15 +17,12 @@ void doSomething() {
         SCREEN_BASE = 0xFFFF;
         */
         //while (1==1) {};
-        //putchar(p[0]);
+        //putchar(0x66);
         //draw_char(0x55, 0, 0);
-        drawstr(foo, 0, 1);
-        drawstr(foo, 0, 2);
-	//puts("foo");
-	int x = 2;
-	int y = 8;
-	int z = x + y;
-	return;
+		puts("foo");
+        drawstr(foo, 5, 7);
+        drawstr(foo, 6, 8);
+		return;
 }
 
 int getOffset(char charValue) {

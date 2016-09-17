@@ -122,7 +122,7 @@ clear_loop:
 	bne	clear_loop
 
 	lea	message2(%pc), %a3
-	movel	#24, %d1
+	movel	#28, %d1
 	movel	#12, %d2
 	jsr	draw_string
 
@@ -137,7 +137,7 @@ clear_loop:
 	jsr	draw_string
 
 	lea	message3(%pc), %a3
-	movel	#40, %d1
+	movel	#42, %d1
 	movel	#19, %d2
 	jsr	draw_string
 
@@ -152,7 +152,7 @@ clear_loop:
 	jsr	draw_string
 
 	lea	message3(%pc), %a3
-	movel	#40, %d1
+	movel	#42, %d1
 	movel	#6, %d2
 	jsr	draw_string
 
@@ -193,8 +193,8 @@ clear_loop:
 */
 /*
 	jsr getNumber(%pc)
-	movel	#'d', %d0
 */
+	movel	#'d', %d0
 	movel	#101, %d1
 	movel	#25, %d2
 	jsr	draw_char
@@ -366,30 +366,57 @@ draw_done:
  */
 drawstr:
 
-	link	%fp, #32
-	/*
-	movel	(%sp)+, %a4
-	*/
-	movel	(%sp)+, %a3
+	movel	(%sp)+, %a0
+
+	movel	(%sp)+, %a1
+	movel	(%sp)+, %d0
 	movel	(%sp)+, %d1
-	movel	(%sp)+, %d2
+
+	movel	%d3, -(%sp)
+	movel	%d4, -(%sp)
+	movel	%d5, -(%sp)
+	movel	%d6, -(%sp)
+	movel	%d7, -(%sp)
+	movel	%d1, -(%sp)
+	movel	%d2, -(%sp)
+	movel	%a3, -(%sp)
+	movel	%a0, -(%sp)
+
+	movel	%d0, %d1
+	movel	%d1, %d2
+	movel	%a1, %a3
 
 drawstr_loop:
 	moveb	(%a3)+, %d0
-	andi	#0x000000FF, %d0
+	cmp		#0, %d0
+	beq		dslreturn
+
 	movel	%d2, -(%sp)
 	movel	%d1, -(%sp)
 	movel	%d0, -(%sp)
-
-	jsr	draw_char
+	jsr		draw_char
 	movel	(%sp)+, %d0
 	movel	(%sp)+, %d1
 	movel	(%sp)+, %d2
 	add.l	#1, %d1
-	cmp	#0, %d0
-	bne	drawstr_loop
+	jmp		drawstr_loop
 	
-	unlk	%fp
+dslreturn:
+	movel	(%sp)+, %a0
+	movel	(%sp)+, %a3
+	movel	(%sp)+, %d2
+	movel	(%sp)+, %d1
+	movel	(%sp)+, %d7
+	movel	(%sp)+, %d6
+	movel	(%sp)+, %d5
+	movel	(%sp)+, %d4
+	movel	(%sp)+, %d3
+
+	pea		0
+	pea		0
+	pea		0
+	movel	%a0, -(%sp)
+
 	rts
 
 /* draw_string: draws an ASCII char at x/y loc in framebuffer using 5x13 font:
@@ -404,6 +431,10 @@ draw_string:
 
 draw_str_loop:
 	movew	(%a3)+, %d0
+	cmp		#0, %d0
+	bne		dsproceed
+	rts
+dsproceed:
 	movel	%d2, -(%sp)
 	movel	%d1, -(%sp)
 	movel	%d0, -(%sp)
@@ -413,10 +444,7 @@ draw_str_loop:
 	movel	(%sp)+, %d1
 	movel	(%sp)+, %d2
 	add.l	#1, %d1
-	cmp	#0, %d0
-	bne	draw_str_loop
-
-	rts
+	jmp		draw_str_loop
 
 /* check_bit: check the bit value of the KeyMap regs
  *
@@ -446,36 +474,36 @@ get_key_loop:
 
 r15:
 	moveb	(KeyMap+15), %d2
-	cmp	#15, %d3
-	beq	token1
+	cmp		#15, %d3
+	beq		token1
 r14:
 	moveb	(KeyMap+14), %d2
-	cmp	#14, %d3
-	beq	token1
+	cmp		#14, %d3
+	beq		token1
 r13:
 	moveb	(KeyMap+13), %d2
-	cmp	#13, %d3
-	beq	token1
+	cmp		#13, %d3
+	beq		token1
 r12:
 	moveb	(KeyMap+12), %d2
-	cmp	#12, %d3
-	beq	token1
+	cmp		#12, %d3
+	beq		token1
 r11:
 	moveb	(KeyMap+11), %d2
-	cmp	#11, %d3
-	beq	token1
+	cmp		#11, %d3
+	beq		token1
 r10:
 	moveb	(KeyMap+10), %d2
-	cmp	#10, %d3
-	beq	token1
+	cmp		#10, %d3
+	beq		token1
 r9:
 	moveb	(KeyMap+9), %d2
-	cmp	#9, %d3
-	beq	token1
+	cmp		#9, %d3
+	beq		token1
 r8:
 	moveb	(KeyMap+8), %d2
-	cmp	#8, %d3
-	beq	token1
+	cmp		#8, %d3
+	beq		token1
 r7:
 	moveb	(KeyMap+7), %d2
 	cmp	#7, %d3
@@ -778,7 +806,7 @@ message3:
 	dc.w 0x61
 	dc.w 0x79
 	dc.w 0x2e
-	dc.w 0x0a
+	dc.w 0
 
 buffer:
 	dc.l 0b00000000000000000000000000100001
