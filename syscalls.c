@@ -3,6 +3,7 @@
 #include "screen.h"
 
 extern caddr_t _end;
+extern char getkeychar();
 //extern void draw_char(char c, int x, int y);
 
 #ifndef RAMSIZE
@@ -40,12 +41,15 @@ int lseek(int file, int ptr, int dir) { return 0; }
 int open(const char *name, int flags, int mode) { return -1; }
 
 int read(int file, char *ptr, int len) {
-	return -1;
+	if (file == STDIN) {
+		*ptr++ = getkeychar();
+	}
+	return 1;
 }
 
 int write(int file, char *ptr, int len) {
 	int i;
-	charout(0x30 + file);
+	//charout(0x30 + file);
 	if (file == STDOUT || file == STDERR) {	// terminal I/O
 		for (i = 0; i < len; i++) {
 			charout(*ptr++);

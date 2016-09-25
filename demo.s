@@ -39,15 +39,15 @@ SysHeapSize: .long   0x00020000          /* system heap size on all machines */
 .include "floppy.i"
 
 /* link to C lib */
-.extern	getChar
-.extern	getOffset
 .extern	doSomething
+.extern	charout
 .extern	font_data
 .extern	rand
 .extern	abs
 .extern	getNumber
 .global drawchar
 .global drawstr
+.global getkeychar
 
 .align	4
 start:
@@ -204,6 +204,7 @@ clear_loop:
 	jsr doSomething(%pc)
 
 	movel	#3, %d7
+
 end_loop:
 	movel	(ScrnBase), %a2
 	addal	#30, %a2
@@ -233,15 +234,24 @@ end_loop:
 	nop
 	nop
 
-	jsr	get_key
-	tst	%d0
+	jsr		get_key
+	tst		%d0
 
-	beq	no_key
+	beq		no_key
 
+/*
 	movel	%d7, %d1
 	movel	#25, %d2
-	jsr	draw_char
+	jsr		draw_char
+*/
+
+	movel	%d0, -(%sp)
+	jsr		charout(%pc)
+	movel	(%sp)+, %d0
+
 no_key:
+
+	/*jsr		doInput(%pc)*/
 
 	nop
 	nop
@@ -492,7 +502,24 @@ dsproceed:
 	add.l	#1, %d1
 	jmp		draw_str_loop
 
-/* check_bit: check the bit value of the KeyMap regs
+/*
+ * getkeychar
+ *
+ * external C interface to get_key
+ */
+getkeychar:
+
+	movel	(%sp)+, %a0
+	movel	(%sp)+, %d0
+
+	jsr		get_key
+	
+	movel	%d0, -(%sp)
+	movel	%a0, -(%sp)
+
+	rts
+
+/* get_key: check the bit value of the KeyMap regs, returning the char code
  *
  * params:
  *
@@ -516,7 +543,7 @@ get_key_loop:
 	movel	%d1, %d3
 	andl	#0x0000FFFF, %d3	/* d3 holds quotient */
 	lsrl	#8, %d1
-	lsrl	#8, %d1			/* d1 holds remainder */
+	lsrl	#8, %d1				/* d1 holds remainder */
 
 r15:
 	moveb	(KeyMap+15), %d2
@@ -552,47 +579,49 @@ r8:
 	beq		token1
 r7:
 	moveb	(KeyMap+7), %d2
-	cmp	#7, %d3
-	beq	token1
+	cmp		#7, %d3
+	beq		token1
 r6:
 	moveb	(KeyMap+6), %d2
-	cmp	#6, %d3
-	beq	token1
+	cmp		#6, %d3
+	beq		token1
 r5:
 	moveb	(KeyMap+5), %d2
-	cmp	#5, %d3
-	beq	token1
+	cmp		#5, %d3
+	beq		token1
 r4:
 	moveb	(KeyMap+4), %d2
-	cmp	#4, %d3
-	beq	token1
+	cmp		#4, %d3
+	beq		token1
 r3:
 	moveb	(KeyMap+3), %d2
-	cmp	#3, %d3
-	beq	token1
+	cmp		#3, %d3
+	beq		token1
 r2:
 	moveb	(KeyMap+2), %d2
-	cmp	#2, %d3
-	beq	token1
+	cmp		#2, %d3
+	beq		token1
 r1:
 	moveb	(KeyMap+1), %d2
-	cmp	#1, %d3
-	beq	token1
+	cmp		#1, %d3
+	beq		token1
 r0:
 	moveb	(KeyMap), %d2
 
 token1:
+/*
 	movel	(ScrnBase), %a1
 	movel	%d2, (%a1)
 	addal	#64, %a1
 	movel	%d1, (%a1)
 
-/*
 	andb	%d0, %d2
 	cmp	#0, %d2
+
 	*/
+
 	btst	%d1, %d2
-	bne	found_key
+	bne		found_key
 
 	subi	#1, %d0
 	bne	get_key_loop
@@ -601,10 +630,20 @@ token1:
 	jmp	didnt_find_key
 
 found_key:
-	lea	scancodes, %a0
+	lea		scancodes, %a0
+
+/*
+	movel	%d0, -(%sp)
+	addl	#48, %d0
+	movel	%d0, -(%sp)
+	jsr		charout(%pc)
+	movel	(%sp)+, %d0
+	movel	(%sp)+, %d0
+*/
+
 	mulsw	#2, %d1
 	mulsw	#2, %d0
-	add	%d1, %d0
+	/*add		%d1, %d0*/
 	addal	%d0, %a0
 	movew	(%a0), %d0
 	
@@ -629,6 +668,7 @@ scancodes:
 	dc.w 'x'
 	dc.w 'c'
 	dc.w 'v'
+	dc.w ' ' /* gap */
 	dc.w 'b'
 	dc.w 'q'
 	dc.w 'w'

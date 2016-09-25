@@ -41,8 +41,13 @@ void doSomething() {
 	charout('D');
 	charout('E');
 	//drawchar('i', 12, 1);
-	puts("This is a longer string.");
+	puts("Welcome. Start typing: (there is currently no debounce) ");
 	return;
+}
+
+void doInput() {
+	char c = getchar();
+	drawchar(c, 12, 1);
 }
 
 int getOffset(char charValue) {
