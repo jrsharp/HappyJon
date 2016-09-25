@@ -171,10 +171,12 @@ clear_loop:
 	movel	#8, %d2
 	jsr	draw_string
 
+/*
 	movel	#'a', %d0
 	movel	#0, %d1
 	movel	#0, %d2
 	jsr	draw_char
+	*/
 
 	movel	#'b', %d0
 	movel	#0, %d1
@@ -263,6 +265,7 @@ keymap:
  */
 
 draw_char:
+	movel	%d0, -(%sp)
 	movel	%d7, -(%sp)
 	movel	%d2, -(%sp)
 	movel	%d1, -(%sp)
@@ -365,6 +368,7 @@ draw_done:
 	movel	(%sp)+, %d1
 	movel	(%sp)+, %d2
 	movel	(%sp)+, %d7
+	movel	(%sp)+, %d0
 
 	rts
 
@@ -373,21 +377,31 @@ draw_done:
  */
 
 drawchar:
+
 	movel	(%sp)+, %a0
 
 	movel	(%sp)+, %d0
 	movel	(%sp)+, %d1
 	movel	(%sp)+, %d2
+	/*
+	cmpi	#0x68, %d0
+	beq	dbgout
+	*/
 
 	jsr	draw_char
 	
-	pea	0
-	pea	0
-	pea	0
+	movel	%d2, -(%sp)
+	movel	%d1, -(%sp)
+	movel	%d0, -(%sp)
 
 	movel	%a0, -(%sp)
 
 	rts
+
+dbgout:
+	movel	%d2, %d0
+	SysError
+	
 /*
  * drawstr
  *

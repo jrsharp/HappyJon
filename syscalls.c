@@ -9,6 +9,10 @@ extern caddr_t _end;
 #define	RAMSIZE	(caddr_t)0x200000
 #endif
 
+#define STDIN 0
+#define STDOUT 1
+#define STDERR 2
+
 int close(int file) { return 1; }
 
 int stat(const char *file, struct stat *st) {
@@ -41,11 +45,14 @@ int read(int file, char *ptr, int len) {
 
 int write(int file, char *ptr, int len) {
 	int i;
-	for (i = 0; i < len; i++) {
-		drawchar(ptr[i], 10 + i, 10);
+	charout(0x30 + file);
+	if (file == STDOUT || file == STDERR) {	// terminal I/O
+		for (i = 0; i < len; i++) {
+			charout(*ptr++);
+		}
 	}
-	return len;
-	//return -1;
+	//return len;
+	return -1;
 }
 
 int unlink(char *name) { return -1; }
