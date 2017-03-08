@@ -40,7 +40,9 @@ SysHeapSize: .long   0x00020000          /* system heap size on all machines */
 
 /* link to C lib */
 .extern	doSomething
+.extern	doInput
 .extern	charout
+.extern	keyboard_getchar
 .extern	font_data
 .extern	rand
 .extern	abs
@@ -176,7 +178,7 @@ clear_loop:
 	movel	#0, %d1
 	movel	#0, %d2
 	jsr	draw_char
-	*/
+*/
 
 	movel	#'b', %d0
 	movel	#0, %d1
@@ -199,59 +201,31 @@ clear_loop:
 	movel	#'d', %d0
 	movel	#101, %d1
 	movel	#25, %d2
-	jsr	draw_char
+	jsr		draw_char
 
-	jsr doSomething(%pc)
+	jsr 	doSomething(%pc)
 
 	movel	#3, %d7
 
 end_loop:
-	movel	(ScrnBase), %a2
-	addal	#30, %a2
-	/*
-	movel	keymap, -(%sp)
-	GetKeys
-	movel	(keymap), %d0
-	*/
-	movel	(0x0174), %d0
-	notl	%d0
-	movel	%d0, (%a2)
-	addal	#64, %a2
-	movel	(0x0175), %d0
-	notl	%d0
-	movel	%d0, (%a2)
-	addal	#64, %a2
-	movel	(0x0176), %d0
-	notl	%d0
-	movel	%d0, (%a2)
-	addal	#64, %a2
-	movel	(0x0177), %d0
-	notl	%d0
-	movel	%d0, (%a2)
 
-	nop
-	nop
-	nop
-	nop
-
-	jsr		get_key
+/*
+	jsr		doInput(%pc)
+*/
+	jsr		keyboard_getchar(%pc)
 	tst		%d0
 
 	beq		no_key
 
-/*
 	movel	%d7, %d1
 	movel	#25, %d2
 	jsr		draw_char
-*/
 
 	movel	%d0, -(%sp)
 	jsr		charout(%pc)
 	movel	(%sp)+, %d0
 
 no_key:
-
-	/*jsr		doInput(%pc)*/
 
 	nop
 	nop
@@ -398,7 +372,7 @@ drawchar:
 	beq	dbgout
 	*/
 
-	jsr	draw_char
+	jsr		draw_char
 	
 	movel	%d2, -(%sp)
 	movel	%d1, -(%sp)

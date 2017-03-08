@@ -1,5 +1,6 @@
 #include "chars.h"
 #include "screen.h"
+#include "keyboard.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -29,7 +30,7 @@ void doSomething() {
 	curs.y = 0;
         int i = 0;
 	char c;
-        for (i = 0; i < 5; i++) {
+        for (i = 0; i < 8; i++) {
 		//if (i % 2 == 0) { c = 'A'; } else { c = 'B'; }
 		c = '0' + i;
                 //drawchar('A' + i, 10 + i, 9);
@@ -41,13 +42,16 @@ void doSomething() {
 	charout('D');
 	charout('E');
 	//drawchar('i', 12, 1);
-	puts("Welcome. Start typing: (there is currently no debounce) ");
+	//puts("Welcome. Start typing: (there is currently no debounce) ");
 	return;
 }
 
 void doInput() {
-	char c = getchar();
-	drawchar(c, 12, 1);
+	char c = keyboard_getchar();
+	//charout('c');
+	if (c > 0) {
+		drawchar(c, 12, 1);
+	}
 }
 
 int getOffset(char charValue) {

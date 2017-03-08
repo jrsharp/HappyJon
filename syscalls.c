@@ -1,6 +1,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include "screen.h"
+#include "keyboard.h"
 
 extern caddr_t _end;
 extern char getkeychar();
@@ -42,7 +43,8 @@ int open(const char *name, int flags, int mode) { return -1; }
 
 int read(int file, char *ptr, int len) {
 	if (file == STDIN) {
-		*ptr++ = getkeychar();
+		//*ptr++ = keyboard_getchar();
+		//*ptr++ = getkeychar();
 	}
 	return 1;
 }
